@@ -1,3 +1,10 @@
 spring:
   application:
     name: prolog-backend
+  config:
+    import: optional:file:.env[.properties]
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
