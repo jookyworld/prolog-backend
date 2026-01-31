@@ -1,10 +1,21 @@
 version: "3.8"
 
 services:
+  spring-app:
+    image: jookyworld/prolog-backend:latest
+    container_name: prolog-backend
+    ports:
+      - "8080:8080"
+    env_file: .env
+    depends_on:
+      mysql:
+        condition: service_healthy # DB가 완전히 뜬 후 앱 실행
+    networks:
+      - prolog-network
+
   mysql:
     image: mysql:8.4
     container_name: prolog-mysql
-    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: prolog
@@ -16,6 +27,16 @@ services:
       - --collation-server=utf8mb4_general_ci
     volumes:
       - prolog-mysql-data:/var/lib/mysql
+    networks:
+      - prolog-network
+    healthcheck: # 앱이 DB 연결을 시도하기 전 상태 체크
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+networks:
+  prolog-network:
+    driver: bridge
 
 volumes:
   prolog-mysql-data:
