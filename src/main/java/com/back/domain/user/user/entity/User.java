@@ -2,6 +2,7 @@ package com.back.domain.user.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 public class User {
@@ -21,20 +23,20 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+    @Column(nullable = false)
+    private String password;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
-
     @Column(nullable = false, length = 50)
     private String nickname;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Gender gender = Gender.UNKNOWN;
-
     @Column(nullable = false)
     private double height;
-
     @Column(nullable = false)
     private double weight;
 
@@ -45,7 +47,7 @@ public class User {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
 }
