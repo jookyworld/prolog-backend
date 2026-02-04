@@ -1,4 +1,4 @@
-package com.back.global.config;
+package com.back.global.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +24,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers(ALWAYS_PERMIT).permitAll()
-                        .anyRequest().permitAll()
-//                                .anyRequest().authenticated()
+                        .anyRequest().permitAll()   // todo : authenticated() 로 교체
                 );
 
         return http.build();
