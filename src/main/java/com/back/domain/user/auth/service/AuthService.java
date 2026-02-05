@@ -1,5 +1,6 @@
 package com.back.domain.user.auth.service;
 
+import com.back.domain.user.auth.dto.LoginRequest;
 import com.back.domain.user.auth.dto.SignupRequest;
 import com.back.domain.user.user.dto.UserResponse;
 import com.back.domain.user.user.entity.Gender;
@@ -48,8 +49,15 @@ public class AuthService {
         return UserResponse.from(saved);
     }
 
-    public void login() {
+    public User login(LoginRequest dto) {
+        User user = userRepository.findByUsername(dto.username())
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다"));
 
+        if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다");
+        }
+
+        return user;
     }
 
     public void logout() {

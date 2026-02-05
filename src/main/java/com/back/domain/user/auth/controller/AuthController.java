@@ -1,8 +1,12 @@
 package com.back.domain.user.auth.controller;
 
+import com.back.domain.user.auth.dto.LoginRequest;
 import com.back.domain.user.auth.dto.SignupRequest;
 import com.back.domain.user.auth.service.AuthService;
 import com.back.domain.user.user.dto.UserResponse;
+import com.back.domain.user.user.entity.User;
+import com.back.global.cookieManager.CookieManager;
+import com.back.global.security.jwt.JwtTokenProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CookieManager cookieManager;
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest dto) {
@@ -22,8 +28,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public void login() {
+    public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest dto) {
+        User user = authService.login(dto);
 
+        // 토큰 발급
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRole());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+
+        // 쿠키에 토큰 넣기
+        cookieManager.setAccessToken(accessToken);
+        cookieManager.setRefreshToken(refreshToken);
+
+        return ResponseEntity.ok(UserResponse.from(user));
     }
 
     @PostMapping("/logout")
