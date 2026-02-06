@@ -48,10 +48,8 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
-            // 필요하면 여기서 “만료” 로그 따로
             return false;
         } catch (JwtException | IllegalArgumentException e) {
-            // 위조, 형식 오류 등
             return false;
         }
     }

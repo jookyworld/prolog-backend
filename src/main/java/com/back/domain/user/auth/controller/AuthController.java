@@ -8,6 +8,7 @@ import com.back.domain.user.user.dto.UserResponse;
 import com.back.domain.user.user.entity.User;
 import com.back.domain.user.user.service.UserService;
 import com.back.global.cookieManager.CookieManager;
+import com.back.global.exception.UnauthorizedException;
 import com.back.global.security.jwt.JwtTokenProvider;
 import com.back.global.security.jwt.JwtTokenResolver;
 import com.back.global.security.principal.UserPrincipal;
@@ -79,13 +80,13 @@ public class AuthController {
         // 요청 refreshToken 조회 및 위변조 확인
         String refreshToken = jwtTokenResolver.resolveRefreshToken(request);
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new UnauthorizedException("리프레시 토큰이 유효하지 않습니다.");
         }
 
         // 저장 refreshToken 과 비교 검증
         Long userId = jwtTokenProvider.getUserId(refreshToken);
         if (!refreshTokenService.validateRefreshToken(userId, refreshToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new UnauthorizedException("리프레시 토큰이 만료되었습니다.");
         }
 
         User user = userService.getUserById(userId);
