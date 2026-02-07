@@ -26,10 +26,6 @@ public class SecurityConfig {
             "/api/auth/refresh"
     };
 
-    private static final String[] ALWAYS_AUTHENTICATED = {
-            "/api/auth/me",
-    };
-
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final JwtTokenResolver jwtTokenResolver;
