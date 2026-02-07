@@ -17,7 +17,7 @@ public class RefreshTokenService {
 
     public void saveRefreshToken(Long userId, String refreshToken) {
         String key = KEY_PREFIX + userId;
-        redisTemplate.opsForValue().set(key, refreshToken, Duration.ofSeconds(refreshExp));
+        redisTemplate.opsForValue().set(key, refreshToken, Duration.ofMillis(refreshExp));
     }
 
     public boolean validateRefreshToken(Long userId, String refreshToken) {
