@@ -17,18 +17,13 @@ public class ExerciseController {
     private final ExerciseService exerciseService;
 
     @GetMapping
-    public List<ExerciseResponse> getAllExercises() {
-        return exerciseService.getAllExercises();
+    public List<ExerciseResponse> getExercisesForUser(@AuthenticationPrincipal UserPrincipal principal) {
+        return exerciseService.getExercisesForUser(principal.getId());
     }
 
     @PostMapping("/custom")
     public ExerciseResponse createCustomExercise(@AuthenticationPrincipal UserPrincipal principal,
                                                  @RequestBody ExerciseCreateRequest request) {
         return exerciseService.createCustomExercise(principal.getId(), request);
-    }
-
-    @PostMapping("/admin")
-    public ExerciseResponse createAdminExercise(@RequestBody ExerciseCreateRequest request) {
-        return exerciseService.createAdminExercise(request);
     }
 }

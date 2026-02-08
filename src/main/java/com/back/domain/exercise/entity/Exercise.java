@@ -21,6 +21,10 @@ public class Exercise {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 운동 이름 (벤치프레스, 스쿼트, 사레레 등)
+    @Column(nullable = false, length = 100)
+    private String name;
+
     // 운동 대분류 (가슴, 어깨, 등, 팔, 하체, 코어, 유산소, 기타)
     @Enumerated(EnumType.STRING)
     @Column(name = "body_part", nullable = false, length = 20)
@@ -29,10 +33,6 @@ public class Exercise {
     // 세부 타겟 (전면 어깨, 이두, 삼두, 힙 등)
     @Column(name = "part_detail", length = 50)
     private String partDetail;
-
-    // 운동 이름 (벤치프레스, 스쿼트, 사레레 등)
-    @Column(nullable = false, length = 100)
-    private String name;
 
     // 커스텀 종목 여부 (true = 사용자가 직접 만든 종목)
     @Column(name = "is_custom", nullable = false)

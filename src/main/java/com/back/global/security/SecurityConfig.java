@@ -19,13 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 허용 URL 패턴
-    private static final String[] ALWAYS_PERMIT = {
-            "/api/auth/signup",
-            "/api/auth/login",
-            "/api/auth/refresh"
-    };
-
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final JwtTokenResolver jwtTokenResolver;
@@ -34,6 +27,12 @@ public class SecurityConfig {
         return new JwtAuthenticationFilter(jwtTokenProvider, jwtTokenResolver, userRepository);
     }
 
+    // 허용 URL 패턴
+    private static final String[] ALWAYS_PERMIT = {
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/refresh"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -41,6 +40,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(ALWAYS_PERMIT).permitAll()
                         .anyRequest().authenticated()
                 )
