@@ -3,17 +3,23 @@ package com.back.domain.routine.routine.service;
 import com.back.domain.exercise.entity.Exercise;
 import com.back.domain.exercise.repository.ExerciseRepository;
 import com.back.domain.routine.routine.dto.RoutineCreateRequest;
+import com.back.domain.routine.routine.dto.RoutineDetailResponse;
 import com.back.domain.routine.routine.dto.RoutineResponse;
 import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.routine.routine.repository.RoutineRepository;
 import com.back.domain.routine.routineItem.dto.RoutineItemCreateRequest;
+import com.back.domain.routine.routineItem.dto.RoutineItemDetailResponse;
 import com.back.domain.routine.routineItem.entity.RoutineItem;
 import com.back.domain.routine.routineItem.repository.RoutineItemRepository;
 import com.back.domain.user.user.entity.User;
 import com.back.domain.user.user.repository.UserRepository;
+import com.back.global.exception.type.ForbiddenException;
+import com.back.global.exception.type.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -53,5 +59,23 @@ public class RoutineService {
         }
 
         return RoutineResponse.from(routine);
+    }
+
+    @Transactional(readOnly = true)
+    public RoutineDetailResponse getRoutineDetail(Long userId, Long routineId) {
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 루틴입니다."));
+
+        if (!userId.equals(routine.getUser().getId())) {
+            throw new ForbiddenException("권한이 없습니다.");
+        }
+
+        List<RoutineItem> routineItems = routineItemRepository.findByRoutineIdOrderByOrderInRoutineAsc(routineId);
+
+        List<RoutineItemDetailResponse> routineItemDetailResponses = routineItems.stream()
+                .map(RoutineItemDetailResponse::from)
+                .toList();
+
+        return RoutineDetailResponse.of(routine, routineItemDetailResponses);
     }
 }

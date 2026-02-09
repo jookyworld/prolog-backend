@@ -8,7 +8,7 @@ import com.back.domain.user.user.dto.UserResponse;
 import com.back.domain.user.user.entity.User;
 import com.back.domain.user.user.service.UserService;
 import com.back.global.cookieManager.CookieManager;
-import com.back.global.exception.UnauthorizedException;
+import com.back.global.exception.type.UnauthorizedException;
 import com.back.global.security.jwt.JwtTokenProvider;
 import com.back.global.security.jwt.JwtTokenResolver;
 import com.back.global.security.principal.UserPrincipal;
