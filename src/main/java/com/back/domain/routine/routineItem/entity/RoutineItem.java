@@ -30,14 +30,12 @@ public class RoutineItem {
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
 
-    @Column(name = "exercise_number", nullable = false)
+    @Column(name = "order_in_routine", nullable = false)
     private int orderInRoutine;
     @Column(nullable = false)
     private int sets;
     @Column(name = "rest_seconds", nullable = false)
     private int restSeconds;
-    @Column(columnDefinition = "TEXT")
-    private String memo;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

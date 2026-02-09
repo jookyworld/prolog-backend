@@ -49,8 +49,8 @@ public class ExerciseService {
                 .createdBy(user)
                 .build();
 
-        Exercise saved = exerciseRepository.save(exercise);
-        return ExerciseResponse.from(saved);
+        exerciseRepository.save(exercise);
+        return ExerciseResponse.from(exercise);
     }
 
 

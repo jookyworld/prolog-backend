@@ -31,9 +31,7 @@ public class Routine {
     @Column(length = 500)
     private String description;
     @Column(nullable = false)
-    private boolean publicRoutine;
-    @Column(nullable = false)
-    private boolean active;
+    private boolean active = true;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
