@@ -37,4 +37,16 @@ public class RoutineController {
         return routineService.getMyRoutines(principal.getId(), status);
     }
 
+    @PatchMapping("/{routineId}/activate")
+    public RoutineResponse activateRoutine(@AuthenticationPrincipal UserPrincipal principal,
+                                           @PathVariable Long routineId) {
+        return routineService.activateRoutine(principal.getId(), routineId);
+    }
+
+    @PatchMapping("/{routineId}/archive")
+    public RoutineResponse archiveRoutine(@AuthenticationPrincipal UserPrincipal principal,
+                                          @PathVariable Long routineId) {
+        return routineService.archiveRoutine(principal.getId(), routineId);
+    }
+
 }

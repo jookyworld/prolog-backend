@@ -99,4 +99,30 @@ public class RoutineService {
                 .map(RoutineResponse::from)
                 .toList();
     }
+
+    @Transactional
+    public RoutineResponse activateRoutine(Long userId, Long routineId) {
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 루틴입니다."));
+
+        if (!userId.equals(routine.getUser().getId())) {
+            throw new ForbiddenException("권한이 없습니다.");
+        }
+
+        routine.activate();
+        return RoutineResponse.from(routine);
+    }
+
+    @Transactional
+    public RoutineResponse archiveRoutine(Long userId, Long routineId) {
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 루틴입니다."));
+
+        if (!userId.equals(routine.getUser().getId())) {
+            throw new ForbiddenException("권한이 없습니다.");
+        }
+
+        routine.archive(); // active = false
+        return RoutineResponse.from(routine);
+    }
 }

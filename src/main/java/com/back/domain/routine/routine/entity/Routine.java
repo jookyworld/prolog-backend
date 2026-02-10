@@ -39,4 +39,13 @@ public class Routine {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void archive() {
+        this.active = false;
+    }
 }
