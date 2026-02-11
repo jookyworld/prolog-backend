@@ -4,7 +4,6 @@ import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.user.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "workout_sessions")
 @EntityListeners(AuditingEntityListener.class)
 public class WorkoutSession {

@@ -5,7 +5,6 @@ import com.back.domain.exercise.entity.Exercise;
 import com.back.domain.workout.session.entity.WorkoutSession;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
@@ -18,7 +17,6 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "workout_sets")
 @EntityListeners(AuditingEntityListener.class)
 public class WorkoutSet {
@@ -35,7 +33,7 @@ public class WorkoutSet {
     @JoinColumn(name = "exercise_id")
     private Exercise exercise;
 
-    @Column(name = "exercise_name", nullable = false)
+    @Column(nullable = false)
     private String exerciseName;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -52,4 +50,23 @@ public class WorkoutSet {
     private LocalDateTime createdAt;
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    private WorkoutSet(WorkoutSession session, Exercise exercise, int setNumber, int weight, int reps) {
+        this.workoutSession = session;
+        this.exercise = exercise;
+        this.exerciseName = exercise.getName();
+        this.bodyPartSnapshot = exercise.getBodyPart();
+        this.setNumber = setNumber;
+        this.weight = weight;
+        this.reps = reps;
+    }
+
+    public static WorkoutSet create(WorkoutSession session, Exercise exercise, int setNumber, int weight, int reps) {
+        return new WorkoutSet(session, exercise, setNumber, weight, reps);
+    }
+
+    public void update(int weight, int reps) {
+        this.weight = weight;
+        this.reps = reps;
+    }
 }
