@@ -4,6 +4,7 @@ import com.back.domain.routine.routine.dto.RoutineCreateRequest;
 import com.back.domain.routine.routine.dto.RoutineDetailResponse;
 import com.back.domain.routine.routine.dto.RoutineResponse;
 import com.back.domain.routine.routine.dto.RoutineStatusFilter;
+import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.routine.routine.service.RoutineService;
 import com.back.global.security.principal.UserPrincipal;
 import jakarta.validation.Valid;
@@ -22,7 +23,8 @@ public class RoutineController {
     @PostMapping
     public RoutineResponse createRoutine(@AuthenticationPrincipal UserPrincipal principal,
                                          @Valid @RequestBody RoutineCreateRequest request) {
-        return routineService.createRoutine(principal.getId(), request);
+        Routine routine = routineService.createRoutine(principal.getId(), request);
+        return RoutineResponse.from(routine);
     }
 
     @GetMapping("/{routineId}")

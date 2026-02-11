@@ -1,15 +1,14 @@
 package com.back.domain.workout.session.controller;
 
+import com.back.domain.workout.session.dto.WorkoutSessionCompleteRequest;
+import com.back.domain.workout.session.dto.WorkoutSessionCompleteResponse;
 import com.back.domain.workout.session.dto.WorkoutSessionResponse;
 import com.back.domain.workout.session.service.WorkoutSessionService;
 import com.back.global.security.principal.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +29,14 @@ public class WorkoutSessionController {
         WorkoutSessionResponse response = workoutSessionService.startFreeSession(principal.getId());
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{sessionId}/complete")
+    public ResponseEntity<WorkoutSessionCompleteResponse> complete(@AuthenticationPrincipal UserPrincipal principal,
+                                                                   @PathVariable Long sessionId,
+                                                                   @RequestBody WorkoutSessionCompleteRequest request) {
+        return ResponseEntity.ok(workoutSessionService.completeSession(principal.getId(), sessionId, request));
+    }
+
 
 
 }

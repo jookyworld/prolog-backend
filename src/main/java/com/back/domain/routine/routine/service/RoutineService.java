@@ -32,7 +32,7 @@ public class RoutineService {
     private final RoutineItemRepository routineItemRepository;
 
     @Transactional
-    public RoutineResponse createRoutine(Long userId, RoutineCreateRequest request) {
+    public Routine createRoutine(Long userId, RoutineCreateRequest request) {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         Routine routine = Routine.builder()
@@ -60,7 +60,7 @@ public class RoutineService {
             routineItemRepository.save(routineItem);
         }
 
-        return RoutineResponse.from(routine);
+        return routine;
     }
 
     @Transactional(readOnly = true)
