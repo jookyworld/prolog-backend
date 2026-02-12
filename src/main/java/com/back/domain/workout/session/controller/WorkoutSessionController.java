@@ -1,11 +1,11 @@
 package com.back.domain.workout.session.controller;
 
-import com.back.domain.workout.session.dto.WorkoutSessionCompleteRequest;
-import com.back.domain.workout.session.dto.WorkoutSessionCompleteResponse;
-import com.back.domain.workout.session.dto.WorkoutSessionResponse;
+import com.back.domain.workout.session.dto.*;
 import com.back.domain.workout.session.service.WorkoutSessionService;
 import com.back.global.security.principal.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +43,18 @@ public class WorkoutSessionController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping
+    public ResponseEntity<Page<WorkoutSessionListItemResponse>> getMySessions(@AuthenticationPrincipal UserPrincipal principal,
+                                                                              @RequestParam(defaultValue = "0") int page,
+                                                                              @RequestParam(defaultValue = "20") int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(workoutSessionService.getWorkoutSessions(principal.getId(), pageable));
+    }
 
-
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<WorkoutSessionDetailResponse> getDetail(@AuthenticationPrincipal UserPrincipal principal,
+                                                                  @PathVariable Long sessionId) {
+        return ResponseEntity.ok(workoutSessionService.getWorkoutSessionDetail(principal.getId(), sessionId));
+    }
 
 }

@@ -7,18 +7,18 @@ import com.back.domain.routine.routine.service.RoutineService;
 import com.back.domain.routine.routineItem.dto.RoutineItemCreateRequest;
 import com.back.domain.user.user.entity.User;
 import com.back.domain.user.user.repository.UserRepository;
-import com.back.domain.workout.session.dto.WorkoutCompleteAction;
-import com.back.domain.workout.session.dto.WorkoutSessionCompleteRequest;
-import com.back.domain.workout.session.dto.WorkoutSessionCompleteResponse;
-import com.back.domain.workout.session.dto.WorkoutSessionResponse;
+import com.back.domain.workout.session.dto.*;
 import com.back.domain.workout.session.entity.WorkoutSession;
 import com.back.domain.workout.session.repository.WorkoutSessionRepository;
+import com.back.domain.workout.set.entity.WorkoutSet;
 import com.back.domain.workout.set.repository.WorkoutSetRepository;
 import com.back.domain.workout.set.repository.WorkoutSetRepository.RoutineExerciseSummary;
 import com.back.global.exception.type.BadRequestException;
 import com.back.global.exception.type.ForbiddenException;
 import com.back.global.exception.type.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,6 +129,50 @@ public class WorkoutSessionService {
 
         workoutSessionRepository.delete(workoutSession);
     }
+
+    @Transactional(readOnly = true)
+    public Page<WorkoutSessionListItemResponse> getWorkoutSessions(Long userId, Pageable pageable) {
+
+        Page<WorkoutSession> sessions = workoutSessionRepository.findByUser_IdAndCompletedAtIsNotNullOrderByCompletedAtDesc(userId, pageable);
+
+        return sessions.map(WorkoutSessionListItemResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public WorkoutSessionDetailResponse getWorkoutSessionDetail(Long userId, Long sessionId) {
+        WorkoutSession session = workoutSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
+
+        if (!session.getUser().getId().equals(userId)) {
+            throw new ForbiddenException("권한이 없습니다.");
+        }
+
+        List<WorkoutSet> sets = workoutSetRepository.findByWorkoutSession_IdOrderByCreatedAtAsc(sessionId);
+
+        var grouped = sets.stream().collect(java.util.stream.Collectors.groupingBy(
+                set -> set.getExercise().getId(),
+                java.util.LinkedHashMap::new,
+                java.util.stream.Collectors.toList()
+        ));
+
+        List<WorkoutExerciseDetailResponse> exercises = grouped.values().stream()
+                .map(exerciseSets -> {
+                    WorkoutSet first = exerciseSets.get(0);
+                    List<WorkoutSetDetailResponse> setResponses = exerciseSets.stream()
+                            .map(WorkoutSetDetailResponse::from)
+                            .toList();
+
+                    return new WorkoutExerciseDetailResponse(
+                            first.getExercise().getId(),
+                            first.getExerciseName(),
+                            setResponses
+                    );
+                })
+                .toList();
+
+        return WorkoutSessionDetailResponse.of(session, exercises);
+    }
+
 
 
     private Routine createRoutineFromSession(Long userId, WorkoutSession workoutSession, String routineTitle) {

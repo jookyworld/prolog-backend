@@ -37,4 +37,6 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, Long> {
         Integer getMaxSetNumber();
         LocalDateTime getFirstCreatedAt();
     }
+
+    List<WorkoutSet> findByWorkoutSession_IdOrderByCreatedAtAsc(Long sessionId);
 }
