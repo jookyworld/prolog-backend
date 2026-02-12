@@ -37,6 +37,13 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(workoutSessionService.completeSession(principal.getId(), sessionId, request));
     }
 
+    @DeleteMapping("/{sessionId}")
+    public ResponseEntity<Void> cancel(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long sessionId) {
+        workoutSessionService.cancelSession(principal.getId(), sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+
 
 
 }

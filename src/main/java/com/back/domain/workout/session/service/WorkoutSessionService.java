@@ -114,6 +114,23 @@ public class WorkoutSessionService {
         return WorkoutSessionCompleteResponse.from(workoutSession);
     }
 
+    @Transactional
+    public void cancelSession(Long userId, Long sessionId) {
+        WorkoutSession workoutSession = workoutSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
+
+        if (!workoutSession.getUser().getId().equals(userId)) {
+            throw new ForbiddenException("본인의 운동 세션만 취소할 수 있습니다.");
+        }
+
+        if (workoutSession.isCompleted()) {
+            throw new BadRequestException("이미 완료된 운동은 취소할 수 없습니다.");
+        }
+
+        workoutSessionRepository.delete(workoutSession);
+    }
+
+
     private Routine createRoutineFromSession(Long userId, WorkoutSession workoutSession, String routineTitle) {
 
         // 1. 세션 내 운동별 요약 집계
