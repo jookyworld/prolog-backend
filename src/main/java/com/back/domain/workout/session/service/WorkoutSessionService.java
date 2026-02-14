@@ -137,6 +137,22 @@ public class WorkoutSessionService {
         workoutSessionRepository.delete(workoutSession);
     }
 
+    @Transactional
+    public void deleteSession(Long userId, Long sessionId) {
+        WorkoutSession workoutSession = workoutSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
+
+        if (!workoutSession.getUser().getId().equals(userId)) {
+            throw new ForbiddenException("본인의 운동 기록만 삭제할 수 있습니다.");
+        }
+
+        if (!workoutSession.isCompleted()) {
+            throw new BadRequestException("진행중인 운동은 취소를 이용해주세요.");
+        }
+
+        workoutSessionRepository.delete(workoutSession);
+    }
+
     @Transactional(readOnly = true)
     public Page<WorkoutSessionListItemResponse> getWorkoutSessions(Long userId, Pageable pageable) {
 

@@ -40,9 +40,15 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(workoutSessionService.completeSession(principal.getId(), sessionId, request));
     }
 
-    @DeleteMapping("/{sessionId}")
+    @DeleteMapping("/{sessionId}/cancel")
     public ResponseEntity<Void> cancel(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long sessionId) {
         workoutSessionService.cancelSession(principal.getId(), sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{sessionId}")
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal UserPrincipal principal, @PathVariable Long sessionId) {
+        workoutSessionService.deleteSession(principal.getId(), sessionId);
         return ResponseEntity.noContent().build();
     }
 
