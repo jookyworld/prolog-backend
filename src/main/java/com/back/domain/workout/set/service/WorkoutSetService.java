@@ -4,7 +4,7 @@ import com.back.domain.exercise.entity.Exercise;
 import com.back.domain.exercise.repository.ExerciseRepository;
 import com.back.domain.workout.session.entity.WorkoutSession;
 import com.back.domain.workout.session.repository.WorkoutSessionRepository;
-import com.back.domain.workout.set.dto.WorkoutSetCreateRequest;
+import com.back.domain.workout.set.dto.WorkoutSetCompleteRequest;
 import com.back.domain.workout.set.dto.WorkoutSetResponse;
 import com.back.domain.workout.set.entity.WorkoutSet;
 import com.back.domain.workout.set.repository.WorkoutSetRepository;
@@ -22,7 +22,7 @@ public class WorkoutSetService {
     private final ExerciseRepository exerciseRepository;
 
     @Transactional
-    public WorkoutSetResponse createSet(Long userId, Long sessionId, WorkoutSetCreateRequest request) {
+    public WorkoutSetResponse createSet(Long userId, Long sessionId, WorkoutSetCompleteRequest request) {
         WorkoutSession workoutSession = workoutSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
 

@@ -1,5 +1,7 @@
 package com.back.domain.workout.session.service;
 
+import com.back.domain.exercise.entity.Exercise;
+import com.back.domain.exercise.repository.ExerciseRepository;
 import com.back.domain.routine.routine.dto.RoutineCreateRequest;
 import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.routine.routine.repository.RoutineRepository;
@@ -10,6 +12,7 @@ import com.back.domain.user.user.repository.UserRepository;
 import com.back.domain.workout.session.dto.*;
 import com.back.domain.workout.session.entity.WorkoutSession;
 import com.back.domain.workout.session.repository.WorkoutSessionRepository;
+import com.back.domain.workout.set.dto.WorkoutSetCompleteRequest;
 import com.back.domain.workout.set.entity.WorkoutSet;
 import com.back.domain.workout.set.repository.WorkoutSetRepository;
 import com.back.domain.workout.set.repository.WorkoutSetRepository.RoutineExerciseSummary;
@@ -23,7 +26,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,7 @@ public class WorkoutSessionService {
     private final RoutineRepository routineRepository;
     private final RoutineService routineService;
     private final WorkoutSetRepository workoutSetRepository;
+    private final ExerciseRepository exerciseRepository;
 
     @Transactional
     public WorkoutSessionResponse startRoutineSession(Long userId, Long routineId) {
@@ -77,28 +85,32 @@ public class WorkoutSessionService {
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
 
         if (!workoutSession.getUser().getId().equals(userId)) {
-            throw new ForbiddenException("본인의 운동 세션만 완료할 수 있습니다.");
+            throw new ForbiddenException("본인의 운동 세션만 완료할 수 있습니다.");}
+
+        // 이미 완료된 세션이면 그대로 리턴
+        if (workoutSession.isCompleted()) {
+            return WorkoutSessionCompleteResponse.from(workoutSession);}
+
+        if (request == null || request.sets() == null || request.sets().isEmpty()) {
+            throw new BadRequestException("세트 기록이 없습니다.");
         }
 
-        if (workoutSession.isCompleted()) { // 이미 완료된 세션이면 그대로 리턴
-            return WorkoutSessionCompleteResponse.from(workoutSession);
-        }
-
-        workoutSession.complete(LocalDateTime.now());   // 완료 처리
-
-        WorkoutCompleteAction action = (request == null || request.action() == null) ?
+        WorkoutCompleteAction action = request.action() == null ?
                 WorkoutCompleteAction.RECORD_ONLY : request.action();
+
+        // 루틴 기반 세션이면 새 루틴 생성은 허용하지 않음
+        if (workoutSession.getRoutine() != null && action == WorkoutCompleteAction.CREATE_ROUTINE_AND_RECORD) {
+            throw new BadRequestException("루틴 기반 세션에서는 새로운 루틴을 생성할 수 없습니다.");
+        }
+
+        // 세트 저장
+        saveWorkoutSets(workoutSession, request.sets());
+
+        // 완료 처리
+        workoutSession.complete(LocalDateTime.now());
 
         // 기록만 저장이면 이미 완료 처리 되었으니 바로 리턴
         if (action == WorkoutCompleteAction.RECORD_ONLY) {
-            return WorkoutSessionCompleteResponse.from(workoutSession);
-        }
-
-        // 루틴 기반 세션이면 새 루틴 생성은 허용하지 않음
-        if (workoutSession.getRoutine() != null) {
-            if (action == WorkoutCompleteAction.CREATE_ROUTINE_AND_RECORD) {
-                throw new BadRequestException("루틴 기반 세션에서는 새로운 루틴을 생성할 수 없습니다.");
-            }
             return WorkoutSessionCompleteResponse.from(workoutSession);
         }
 
@@ -173,6 +185,56 @@ public class WorkoutSessionService {
         return WorkoutSessionDetailResponse.of(session, exercises);
     }
 
+
+
+    private void saveWorkoutSets(WorkoutSession session, List<WorkoutSetCompleteRequest> requests) {
+
+        if (requests == null || requests.isEmpty()) {
+            throw new BadRequestException("세트 기록이 없습니다.");
+        }
+
+        // 1. 중복 (exerciseId, setNumber) 체크
+        Set<String> unique = new HashSet<>();
+        for (var r : requests) {
+            String key = r.exerciseId() + ":" + r.setNumber();
+            if (!unique.add(key)) {
+                throw new BadRequestException("같은 종목에서 세트 번호가 중복되었습니다.");
+            }
+        }
+
+        // 2. exercise 일괄 조회 (N+1 방지)
+        List<Long> exerciseIds = requests.stream()
+                .map(WorkoutSetCompleteRequest::exerciseId)
+                .distinct()
+                .toList();
+
+        List<Exercise> exercises = exerciseRepository.findAllById(exerciseIds);
+        if (exercises.size() != exerciseIds.size()) {
+            throw new NotFoundException("존재하지 않는 운동 종목이 포함되어 있습니다.");
+        }
+
+        Map<Long, Exercise> exerciseMap = exercises.stream().collect(Collectors.toMap(Exercise::getId, e -> e));
+
+        // 3. 엔티티 생성
+        List<WorkoutSet> entities = requests.stream()
+                .map(r -> {
+                    Exercise ex = exerciseMap.get(r.exerciseId());
+
+                    return WorkoutSet.builder()
+                            .workoutSession(session)
+                            .exercise(ex)
+                            .exerciseName(ex.getName())       // snapshot
+                            .bodyPartSnapshot(ex.getBodyPart()) // 사용 중이면
+                            .setNumber(r.setNumber())
+                            .weight(r.weight())
+                            .reps(r.reps())
+                            .build();
+                })
+                .toList();
+
+        // 4. bulk insert
+        workoutSetRepository.saveAll(entities);
+    }
 
 
     private Routine createRoutineFromSession(Long userId, WorkoutSession workoutSession, String routineTitle) {

@@ -1,6 +1,6 @@
 package com.back.domain.workout.set.controller;
 
-import com.back.domain.workout.set.dto.WorkoutSetCreateRequest;
+import com.back.domain.workout.set.dto.WorkoutSetCompleteRequest;
 import com.back.domain.workout.set.dto.WorkoutSetResponse;
 import com.back.domain.workout.set.service.WorkoutSetService;
 import com.back.global.security.principal.UserPrincipal;
@@ -18,7 +18,7 @@ public class WorkoutSetController {
     @PostMapping
     public ResponseEntity<WorkoutSetResponse> createSet(@AuthenticationPrincipal UserPrincipal principal,
                                                         @PathVariable Long sessionId,
-                                                        @RequestBody WorkoutSetCreateRequest request) {
+                                                        @RequestBody WorkoutSetCompleteRequest request) {
         WorkoutSetResponse response = workoutSetService.createSet(principal.getId(), sessionId, request);
         return ResponseEntity.ok(response);
     }
