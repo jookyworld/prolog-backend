@@ -17,16 +17,10 @@ public class WorkoutSessionController {
 
     private final WorkoutSessionService workoutSessionService;
 
-    @PostMapping("/routine/{routineId}")
-    public ResponseEntity<WorkoutSessionResponse> startRoutineSession(@AuthenticationPrincipal UserPrincipal principal,
-                                                                      @PathVariable Long routineId) {
-        WorkoutSessionResponse response = workoutSessionService.startRoutineSession(principal.getId(), routineId);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/free")
-    public ResponseEntity<WorkoutSessionResponse> startFreeSession(@AuthenticationPrincipal UserPrincipal principal) {
-        WorkoutSessionResponse response = workoutSessionService.startFreeSession(principal.getId());
+    @PostMapping
+    public ResponseEntity<WorkoutSessionResponse> startSession(@AuthenticationPrincipal UserPrincipal principal,
+                                                                @RequestBody WorkoutSessionStartRequest request) {
+        WorkoutSessionResponse response = workoutSessionService.startSession(principal.getId(), request.routineId());
         return ResponseEntity.ok(response);
     }
 
