@@ -67,6 +67,13 @@ public class WorkoutSessionService {
         return WorkoutSessionResponse.from(workoutSession);
     }
 
+    @Transactional(readOnly = true)
+    public WorkoutSessionResponse getActiveSession(Long userId) {
+        return workoutSessionRepository.findByUser_IdAndCompletedAtIsNull(userId)
+                .map(WorkoutSessionResponse::from)
+                .orElse(null);
+    }
+
     @Transactional
     public WorkoutSessionCompleteResponse completeSession(Long userId, Long sessionId, WorkoutSessionCompleteRequest request) {
         WorkoutSession workoutSession = workoutSessionRepository.findById(sessionId)

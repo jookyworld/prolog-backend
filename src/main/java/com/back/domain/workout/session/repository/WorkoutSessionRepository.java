@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, Long> {
     boolean existsByUser_IdAndCompletedAtIsNull(Long userId);
 
+    java.util.Optional<WorkoutSession> findByUser_IdAndCompletedAtIsNull(Long userId);
+
     Page<WorkoutSession> findByUser_IdAndCompletedAtIsNotNullOrderByCompletedAtDesc(Long userId, Pageable pageable);
 
 }

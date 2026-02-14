@@ -24,6 +24,15 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<WorkoutSessionResponse> getActiveSession(@AuthenticationPrincipal UserPrincipal principal) {
+        WorkoutSessionResponse response = workoutSessionService.getActiveSession(principal.getId());
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{sessionId}/complete")
     public ResponseEntity<WorkoutSessionCompleteResponse> complete(@AuthenticationPrincipal UserPrincipal principal,
                                                                    @PathVariable Long sessionId,
