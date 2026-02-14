@@ -7,18 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, Long> {
-
-    @Query("""
-            select max(ws.setNumber)
-            from WorkoutSet ws
-            where ws.workoutSession.id = :sessionId
-            and ws.exercise.id = :exerciseId
-            """)
-    Optional<Integer> findMaxSetNumber(Long sessionId, Long exerciseId);
 
     @Query("""
         select
