@@ -60,4 +60,14 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(workoutSessionService.getWorkoutSessionDetail(principal.getId(), sessionId));
     }
 
+    @GetMapping("/routines/{routineId}/last")
+    public ResponseEntity<WorkoutSessionDetailResponse> getLastSessionByRoutine(@AuthenticationPrincipal UserPrincipal principal,
+                                                                                 @PathVariable Long routineId) {
+        WorkoutSessionDetailResponse response = workoutSessionService.getLastSessionByRoutine(principal.getId(), routineId);
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
+    }
+
 }

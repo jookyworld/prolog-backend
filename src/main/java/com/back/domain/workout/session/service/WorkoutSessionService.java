@@ -154,12 +154,29 @@ public class WorkoutSessionService {
             throw new ForbiddenException("권한이 없습니다.");
         }
 
-        List<WorkoutSet> sets = workoutSetRepository.findByWorkoutSession_IdOrderByCreatedAtAsc(sessionId);
+        return buildSessionDetailResponse(session);
+    }
 
-        var grouped = sets.stream().collect(java.util.stream.Collectors.groupingBy(
+    @Transactional(readOnly = true)
+    public WorkoutSessionDetailResponse getLastSessionByRoutine(Long userId, Long routineId) {
+        WorkoutSession session = workoutSessionRepository
+                .findTopByUser_IdAndRoutine_IdAndCompletedAtIsNotNullOrderByCompletedAtDesc(userId, routineId)
+                .orElse(null);
+
+        if (session == null) {
+            return null;
+        }
+
+        return buildSessionDetailResponse(session);
+    }
+
+    private WorkoutSessionDetailResponse buildSessionDetailResponse(WorkoutSession session) {
+        List<WorkoutSet> sets = workoutSetRepository.findByWorkoutSession_IdOrderByCreatedAtAsc(session.getId());
+
+        var grouped = sets.stream().collect(Collectors.groupingBy(
                 set -> set.getExercise().getId(),
                 java.util.LinkedHashMap::new,
-                java.util.stream.Collectors.toList()
+                Collectors.toList()
         ));
 
         List<WorkoutExerciseDetailResponse> exercises = grouped.values().stream()
@@ -179,8 +196,6 @@ public class WorkoutSessionService {
 
         return WorkoutSessionDetailResponse.of(session, exercises);
     }
-
-
 
     private void saveWorkoutSets(WorkoutSession session, List<WorkoutSetCompleteRequest> requests) {
 
