@@ -3,6 +3,10 @@ spring:
     activate:
       on-profile: prod
 
+  data:
+    redis:
+      host: redis
+
   datasource:
     url: jdbc:mysql://mysql:3306/prolog?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
