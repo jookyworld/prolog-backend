@@ -1,11 +1,25 @@
 version: "3.8"
 
 services:
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: prolog-npm
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81" # 관리자 웹 UI
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    depends_on:
+      - spring-app
+    networks:
+      - prolog-network
+    restart: unless-stopped
+
   spring-app:
     image: jookyworld/prolog-backend:latest
     container_name: prolog-backend
-    ports:
-      - "8080:8080"
     env_file: .env
     depends_on:
       mysql:
@@ -20,8 +34,6 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: prolog
       TZ: Asia/Seoul
-    ports:
-      - "3306:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
@@ -37,8 +49,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: prolog-redis
-    ports:
-      - "6379:6379"
     networks:
       - prolog-network
 
@@ -48,3 +58,5 @@ networks:
 
 volumes:
   prolog-mysql-data:
+  npm-data:
+  npm-letsencrypt:
