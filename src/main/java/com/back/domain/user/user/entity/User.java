@@ -50,4 +50,10 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public void updateProfile(String nickname, Gender gender, double height, double weight) {
+        this.nickname = nickname;
+        this.gender = gender;
+        this.height = height;
+        this.weight = weight;
+    }
 }
