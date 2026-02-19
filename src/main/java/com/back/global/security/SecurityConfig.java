@@ -34,6 +34,7 @@ public class SecurityConfig {
 
     // 허용 URL 패턴
     private static final String[] ALWAYS_PERMIT = {
+            "/",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/api/auth/signup",
