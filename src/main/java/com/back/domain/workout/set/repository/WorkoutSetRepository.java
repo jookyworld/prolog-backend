@@ -30,4 +30,6 @@ public interface WorkoutSetRepository extends JpaRepository<WorkoutSet, Long> {
     }
 
     List<WorkoutSet> findByWorkoutSession_IdOrderByCreatedAtAsc(Long sessionId);
+
+    void deleteAllByWorkoutSession_User_Id(Long userId);
 }

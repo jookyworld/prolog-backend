@@ -67,7 +67,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal UserPrincipal principal) {
         if (principal != null) {
-            refreshTokenService.deleteRefreshToken(principal.getId());
+            authService.logout(principal.getId());
         }
 
         cookieManager.clearAuthCookies();
@@ -102,7 +102,9 @@ public class AuthController {
     }
 
     @DeleteMapping("/deleteMe")
-    public void deleteMe() {
-
+    public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserPrincipal principal) {
+        authService.deleteMe(principal.getId());
+        cookieManager.clearAuthCookies();
+        return ResponseEntity.noContent().build();
     }
 }

@@ -15,4 +15,6 @@ public interface RoutineItemRepository extends JpaRepository<RoutineItem, Long> 
     void updateExerciseIdBulk(List<Long> customIds, Long officialId);
 
     List<RoutineItem> findByRoutineIdOrderByOrderInRoutineAsc(Long routineId);
+
+    void deleteAllByRoutine_User_Id(Long userId);
 }
