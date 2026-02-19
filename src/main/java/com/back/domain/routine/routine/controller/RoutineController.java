@@ -1,14 +1,12 @@
 package com.back.domain.routine.routine.controller;
 
-import com.back.domain.routine.routine.dto.RoutineCreateRequest;
-import com.back.domain.routine.routine.dto.RoutineDetailResponse;
-import com.back.domain.routine.routine.dto.RoutineResponse;
-import com.back.domain.routine.routine.dto.RoutineStatusFilter;
+import com.back.domain.routine.routine.dto.*;
 import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.routine.routine.service.RoutineService;
 import com.back.global.security.principal.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,4 +49,17 @@ public class RoutineController {
         return routineService.archiveRoutine(principal.getId(), routineId);
     }
 
+    @PutMapping("/{routineId}")
+    public RoutineDetailResponse updateRoutine(@AuthenticationPrincipal UserPrincipal principal,
+                                               @PathVariable Long routineId,
+                                               @Valid @RequestBody RoutineUpdateRequest request) {
+        return routineService.updateRoutine(principal.getId(), routineId, request);
+    }
+
+    @DeleteMapping("/{routineId}")
+    public ResponseEntity<Void> deleteRoutine(@AuthenticationPrincipal UserPrincipal principal,
+                                              @PathVariable Long routineId) {
+        routineService.deleteRoutine(principal.getId(), routineId);
+        return ResponseEntity.noContent().build();
+    }
 }
