@@ -3,6 +3,7 @@ package com.back.domain.workout.session.service;
 import com.back.domain.exercise.entity.Exercise;
 import com.back.domain.exercise.repository.ExerciseRepository;
 import com.back.domain.routine.routine.dto.RoutineCreateRequest;
+import com.back.domain.routine.routine.dto.RoutineUpdateRequest;
 import com.back.domain.routine.routine.entity.Routine;
 import com.back.domain.routine.routine.repository.RoutineRepository;
 import com.back.domain.routine.routine.service.RoutineService;
@@ -80,11 +81,12 @@ public class WorkoutSessionService {
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 운동 세션입니다."));
 
         if (!workoutSession.getUser().getId().equals(userId)) {
-            throw new ForbiddenException("본인의 운동 세션만 완료할 수 있습니다.");}
+            throw new ForbiddenException("본인의 운동 세션만 완료할 수 있습니다.");
+        }
 
-        // 이미 완료된 세션이면 그대로 리턴
         if (workoutSession.isCompleted()) {
-            return WorkoutSessionCompleteResponse.from(workoutSession);}
+            return WorkoutSessionCompleteResponse.from(workoutSession);
+        }
 
         if (request == null || request.sets() == null || request.sets().isEmpty()) {
             throw new BadRequestException("세트 기록이 없습니다.");
@@ -93,9 +95,19 @@ public class WorkoutSessionService {
         WorkoutCompleteAction action = request.action() == null ?
                 WorkoutCompleteAction.RECORD_ONLY : request.action();
 
-        // 루틴 기반 세션이면 새 루틴 생성은 허용하지 않음
-        if (workoutSession.getRoutine() != null && action == WorkoutCompleteAction.CREATE_ROUTINE_AND_RECORD) {
+        boolean hasRoutine = workoutSession.getRoutine() != null;
+
+        // 자유 운동에서만 허용되는 액션
+        if (!hasRoutine && action == WorkoutCompleteAction.CREATE_ROUTINE_AND_RECORD) {
+            // OK: 자유 운동 → 새 루틴 생성
+        } else if (hasRoutine && action == WorkoutCompleteAction.CREATE_ROUTINE_AND_RECORD) {
             throw new BadRequestException("루틴 기반 세션에서는 새로운 루틴을 생성할 수 없습니다.");
+        }
+
+        // 루틴 기반에서만 허용되는 액션
+        if (!hasRoutine && (action == WorkoutCompleteAction.DETACH_AND_RECORD
+                || action == WorkoutCompleteAction.UPDATE_ROUTINE_AND_RECORD)) {
+            throw new BadRequestException("자유 운동 세션에서는 사용할 수 없는 액션입니다.");
         }
 
         // 세트 저장
@@ -104,19 +116,27 @@ public class WorkoutSessionService {
         // 완료 처리
         workoutSession.complete(LocalDateTime.now());
 
-        // 기록만 저장이면 이미 완료 처리 되었으니 바로 리턴
-        if (action == WorkoutCompleteAction.RECORD_ONLY) {
-            return WorkoutSessionCompleteResponse.from(workoutSession);
+        switch (action) {
+            case RECORD_ONLY -> {
+                // 기록만 저장 (루틴 링크 유지)
+            }
+            case CREATE_ROUTINE_AND_RECORD -> {
+                String routineTitle = request.routineTitle();
+                if (routineTitle == null || routineTitle.isBlank()) {
+                    throw new BadRequestException("루틴 이름을 입력해주세요.");
+                }
+                Routine newRoutine = createRoutineFromSession(userId, workoutSession, routineTitle);
+                workoutSession.setRoutine(newRoutine);
+            }
+            case DETACH_AND_RECORD -> {
+                // 루틴 연결 해제 → 자유 운동으로 전환
+                workoutSession.setRoutine(null);
+            }
+            case UPDATE_ROUTINE_AND_RECORD -> {
+                // 기존 루틴을 현재 운동 내용으로 업데이트
+                updateRoutineFromSession(workoutSession);
+            }
         }
-
-        // 여기까지 왔으면 루틴까지 생성하는 요청임
-        String routineTitle = request.routineTitle();
-        if (routineTitle == null || routineTitle.isBlank()) {
-            throw new BadRequestException("루틴 이름을 입력 해주세요.");
-        }
-
-        Routine newRoutine = createRoutineFromSession(userId, workoutSession, routineTitle);    // 세션을 기반으로 루틴 생성
-        workoutSession.setRoutine(newRoutine);      // 지금 운동 세션도 루틴에 넣기
 
         return WorkoutSessionCompleteResponse.from(workoutSession);
     }
@@ -288,5 +308,32 @@ public class WorkoutSessionService {
         );
 
         return routineService.createRoutine(userId, req);
+    }
+
+    private void updateRoutineFromSession(WorkoutSession workoutSession) {
+        Routine routine = workoutSession.getRoutine();
+        Long userId = workoutSession.getUser().getId();
+
+        // 세션 내 운동별 요약 집계
+        List<RoutineExerciseSummary> summaries = workoutSetRepository.summarizeBySession(workoutSession.getId());
+        if (summaries.isEmpty()) {
+            throw new BadRequestException("세트 기록이 없는 세션으로는 루틴을 업데이트할 수 없습니다.");
+        }
+
+        List<RoutineItemCreateRequest> routineItems = summaries.stream()
+                .map(s -> new RoutineItemCreateRequest(
+                        s.getExerciseId(),
+                        s.getMaxSetNumber(),
+                        0
+                ))
+                .toList();
+
+        RoutineUpdateRequest updateRequest = new RoutineUpdateRequest(
+                routine.getTitle(),
+                routine.getDescription(),
+                routineItems
+        );
+
+        routineService.updateRoutine(userId, routine.getId(), updateRequest);
     }
 }
